@@ -8,14 +8,14 @@ import numpy as np
 import time
 import errno
 
-MODEL_FILENAME = "frozen_inference_graph.pb"
-MODEL_URL = "https://storage.googleapis.com/sdc-traffic-light/models/bosch/" + MODEL_FILENAME
-MODEL_MD5 = "838b3f6ff900c66921961b5dd499b68a"
-SCORE_THRESHOLD = 0.2
+MODEL_FILENAME = 'frozen_inference_graph.pb'
+SCORE_THRESHOLD = 0.3
 
 class TLClassifier(object):
     def __init__(self, consensus=1):
-        self.detector_model_path =  "../../../data/models/bosch/" + MODEL_FILENAME
+        data = rospy.get_param('~data')
+
+        self.detector_model_path =  '../../../data/models/ssd/' + '/'.join([data, MODEL_FILENAME])
         self.detector = Detector(self.detector_model_path)
         self.consensus = consensus
 
@@ -36,7 +36,7 @@ class TLClassifier(object):
         scores = np.squeeze(scores)
         classes = np.squeeze(classes).astype(np.int32)
 
-        rospy.loginfo("scores = {}, classes = {}".format(scores, classes))
+        rospy.logdebug("scores = {}, classes = {}".format(scores, classes))
 
         num_classes = np.zeros(5, dtype=np.uint8)
         sum_scores = np.zeros(5)
@@ -78,9 +78,7 @@ class Detector(object):
             if exception.errno != errno.EEXIST:
                 raise
 
-        model_file = get_file(os.path.abspath(model_file), MODEL_URL, file_hash = MODEL_MD5)        
-
-        self.model_file = model_file
+        self.model_file = os.path.abspath(model_file)
         self.detection_graph = tf.Graph()
         self.import_tf_graph()
         self.session = tf.Session(graph=self.detection_graph)

@@ -67,7 +67,7 @@ class WaypointUpdater(object):
         self.update()
         rospy.spin()
 
-    # publish the next waypoints
+    # find index of nearest waypoint and publish the next waypoints
     def update(self):
         rate = rospy.Rate(RATE)
         while not rospy.is_shutdown():
@@ -76,7 +76,6 @@ class WaypointUpdater(object):
                 self.publish_next_waypoints()
             rate.sleep()
 
-    # find index of nearest waypoint
     def find_nearest_waypoint(self):
         nearest_waypoint = [-1, sys.maxint]
         car_coord = self.current_pose.pose.position
@@ -119,7 +118,7 @@ class WaypointUpdater(object):
 
     def waypoints_cb(self, waypoints):
         self.base_waypoints = waypoints.waypoints
-        self.base_waypoints_sub.unregister()        
+        self.base_waypoints_sub.unregister()
 
     def obstacle_cb(self, msg):
         # TODO
@@ -177,9 +176,9 @@ class WaypointUpdater(object):
 
             if LIMIT_DISTANCE < distance_to_tl:
                 self.state = STATE.KEEP
-            elif BRAKE_DISTANCE < distance_to_tl < self.LIMIT_DISTANCE:
+            elif BRAKE_DISTANCE < distance_to_tl < LIMIT_DISTANCE:
                 self.state = STATE.GO
-            elif HARD_LIMIT_DISTANCE < distance_to_tl < self.BRAKE_DISTANCE:
+            elif HARD_LIMIT_DISTANCE < distance_to_tl < BRAKE_DISTANCE:
                 self.state = STATE.BRAKE
             else:
                 self.state = STATE.STOP
@@ -228,8 +227,8 @@ class WaypointUpdater(object):
         distance = 0
         start, end, sign = (wp1, wp2, 1) if wp1 <= wp2 else (wp2, wp1, -1)
         for i in range(end - start):
-            distance += dl(self.track_waypoints[start + i].pose.pose.position,
-                           self.track_waypoints[start + i + 1].pose.pose.position)
+            distance += dl(self.base_waypoints[start + i].pose.pose.position,
+                           self.base_waypoints[start + i + 1].pose.pose.position)
         return sign * distance
 
     def euclid_distance(self, x1, x2, y1, y2):

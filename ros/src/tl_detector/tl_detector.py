@@ -15,7 +15,7 @@ import numpy as np
 import math
 import sys
 
-MAX_DISTANCE = 200.0 #100.0
+MAX_DISTANCE = 100.0
 MIN_DISTANCE = 0.0
 MAX_ANGLE = 15.0 * (math.pi/180.0)
 
