@@ -39,6 +39,8 @@ STEERING_BUFFER_SIZE = 10
 Action = namedtuple("Action", ["BRAKE", "THROTTLE"])
 ACTION = Action(BRAKE = 0, THROTTLE = 1)
 
+LOG_LEVEL = rospy.INFO
+
 class DBWNode(object):
     def __init__(self):
         rospy.init_node('dbw_node')

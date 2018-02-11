@@ -7,6 +7,8 @@ GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
 MIN_SETPOINT_VELOCITY = 0.12
 
+LOG_LEVEL = rospy.INFO
+
 class Controller(object):
     def __init__(self, *args, **kwargs):
         self.brake_deadband = kwargs['brake_deadband']

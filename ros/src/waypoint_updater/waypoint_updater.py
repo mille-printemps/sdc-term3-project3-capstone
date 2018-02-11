@@ -31,8 +31,8 @@ LOOKAHEAD_WAYPOINTS = 100 # number of waypoints to be published
 KPH_TO_MPS = 1.0/3.6
 
 MAX_VELOCITY = KPH_TO_MPS * rospy.get_param("/waypoint_loader/velocity")
-SLOW_DOWN = 0.8
-YIELD = 0.3
+GO = 0.8
+SLOW = 0.3
 
 LIMIT_DISTANCE = 100
 BRAKE_DISTANCE = 55
@@ -41,12 +41,14 @@ HARD_LIMIT_DISTANCE = 8
 #DEBUG = True
 DEBUG = False
 
-State = namedtuple("State", ["KEEP", "GO", "STOP", "WARN", "BRAKE"])
-STATE = State(KEEP = 0, GO = 1, STOP = 2, WARN = 3, BRAKE = 4)
+Behavior = namedtuple("Behavior", ["KEEP", "GO", "STOP", "SLOW", "BRAKE"])
+BEHAVIOR = Behavior(KEEP = 0, GO = 1, STOP = 2, SLOW = 3, BRAKE = 4)
+
+LOG_LEVEL = rospy.INFO
 
 class WaypointUpdater(object):
     def __init__(self):
-        rospy.init_node('waypoint_updater')
+        rospy.init_node('waypoint_updater', log_level=LOG_LEVEL)
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
@@ -62,7 +64,6 @@ class WaypointUpdater(object):
 
         self.waypoint_saved_velocity = None
         self.tl_waypoint_id = None
-        self.state = None
 
         self.update()
         rospy.spin()
@@ -175,24 +176,24 @@ class WaypointUpdater(object):
             rospy.loginfo("distance to traffic light = {} ".format(distance_to_tl))
 
             if LIMIT_DISTANCE < distance_to_tl:
-                self.state = STATE.KEEP
+                return BEHAVIOR.KEEP
             elif BRAKE_DISTANCE < distance_to_tl < LIMIT_DISTANCE:
-                self.state = STATE.GO
+                return BEHAVIOR.GO
             elif HARD_LIMIT_DISTANCE < distance_to_tl < BRAKE_DISTANCE:
-                self.state = STATE.BRAKE
+                return BEHAVIOR.BRAKE
             else:
-                self.state = STATE.STOP
+                return BEHAVIOR.STOP
         # no traffic lights
         elif self.tl_waypoint_id == -1:
-            self.state = STATE.KEEP
+            return BEHAVIOR.KEEP
         # traffic lights unknown
         elif self.tl_waypoint_id == -2:
-            self.state = STATE.WARN
+            return BEHAVIOR.SLOW
         # green light
         elif self.tl_waypoint_id == -3:
-            self.state = STATE.GO
+            return BEHAVIOR.GO
         else:
-            rospy.logerr("UNKOWN STATE, this might be a bug")
+            rospy.logerr("UNKOWN BEHAVIOR, this might be a bug")
 
     def behavior(self, waypoints):
         if DEBUG:
@@ -204,20 +205,20 @@ class WaypointUpdater(object):
             return self.reset_velocity(waypoints, 0.0)
         
         # traffic light message received
-        self.decide_behavior()
+        behavior = self.decide_behavior()
 
-        if self.state == STATE.KEEP:
+        if behavior == BEHAVIOR.KEEP:
             rospy.loginfo("no traffic light detected")
             return self.update_velocity(waypoints)
-        elif self.state == STATE.GO:
+        elif behavior == BEHAVIOR.GO:
             rospy.loginfo("green light detected")
-            return self.update_velocity(waypoints, SLOW_DOWN)
-        elif self.state == STATE.STOP:
+            return self.update_velocity(waypoints, GO)
+        elif behavior == BEHAVIOR.STOP:
             rospy.loginfo("red light detected closely")
             return self.reset_velocity(waypoints, 0.0)
-        elif self.state == STATE.WARN:
+        elif behavior == BEHAVIOR.SLOW:
             rospy.loginfo("unknown traffic light detected")
-            return self.update_velocity(waypoints, YIELD)
+            return self.update_velocity(waypoints, SLOW)
         else:
             rospy.loginfo("red light detected")
             return self.brake(waypoints)
