@@ -4,7 +4,7 @@ Team members:
 
 * Chiharu Kawatake	<chiharu.kawatake @ gmail.com>
 
-[Bosch Small Traffic Lights Dataset](https://hci.iwr.uni-heidelberg.de/node/6132) and [Tensorflow Object Detection API](https://github.com/tensorflow/models/tree/master/research/object_detection) are used for training and testing the traffic light classifier implemented here.
+[Single Shot MultiBox Detector or SSD](https://arxiv.org/pdf/1512.02325v5.pdf) implemented in [Tensorflow Object Detection API](https://github.com/tensorflow/models/tree/master/research/object_detection) was used for training and testing the traffic light classifier implemented here. Training and test data sets were prepared for the simulator and site, then frozen inference graphs were created for each.
 
 ---
 
