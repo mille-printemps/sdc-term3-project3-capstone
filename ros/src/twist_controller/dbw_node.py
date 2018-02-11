@@ -4,12 +4,11 @@ import rospy
 from std_msgs.msg import Bool
 from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import Pose, PoseStamped, TwistStamped
+from styx_msgs.msg import Lane, Waypoint
+from twist_controller import Controller
 import math
 import numpy as np
-from styx_msgs.msg import Lane, Waypoint
 from collections import namedtuple
-
-from twist_controller import Controller
 
 '''
 You can build this node only after you have built (or partially built) the `waypoint_updater` node.

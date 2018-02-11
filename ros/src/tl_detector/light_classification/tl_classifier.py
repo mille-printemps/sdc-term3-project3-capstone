@@ -2,10 +2,8 @@ from styx_msgs.msg import TrafficLight
 
 import rospy
 import tensorflow as tf
-from keras.utils.data_utils import get_file
 import os
 import numpy as np
-import time
 import errno
 
 MODEL_FILENAME = 'frozen_inference_graph.pb'
