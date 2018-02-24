@@ -4,11 +4,11 @@ import rospy
 from std_msgs.msg import Bool
 from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import Pose, PoseStamped, TwistStamped
+from styx_msgs.msg import Lane, Waypoint
+from twist_controller import Controller
 import math
 import numpy as np
-from styx_msgs.msg import Lane, Waypoint
-
-from twist_controller import Controller
+from collections import namedtuple
 
 '''
 You can build this node only after you have built (or partially built) the `waypoint_updater` node.
@@ -35,6 +35,11 @@ that we have created in the `__init__` function.
 
 RATE = 50 # in Hz
 STEERING_BUFFER_SIZE = 10
+
+Action = namedtuple("Action", ["BRAKE", "THROTTLE"])
+ACTION = Action(BRAKE = 0, THROTTLE = 1)
+
+LOG_LEVEL = rospy.INFO
 
 class DBWNode(object):
     def __init__(self):
@@ -104,11 +109,9 @@ class DBWNode(object):
     def loop(self):
         rate = rospy.Rate(RATE)
         while not rospy.is_shutdown():
-            # Get predicted throttle, brake, and steering using `twist_controller`
-            if(self.dbw_enabled) and \
-              (self.current_pose is not None) and \
-              (self.current_setpoint is not None) and \
-              (self.current_velocity is not None):
+            # get predicted throttle, brake and steering
+            if(self.dbw_enabled) and (self.current_pose is not None) and \
+              (self.current_setpoint is not None) and (self.current_velocity is not None):
                 params = {
                     'linear_setpoint': self.current_setpoint.twist.linear.x,
                     'angular_setpoint': self.current_setpoint.twist.angular.z,
@@ -139,16 +142,16 @@ class DBWNode(object):
         brake_cmd.pedal_cmd = brake
         # self.brake_pub.publish(brake_cmd)
 
-        action = 'brake' if 0 < brake else 'throttle'
+        action = ACTION.BRAKE if 0 < brake else ACTION.THROTTLE
 
         if action != self.last_action:
             self.brake_pub.publish(brake_cmd)
             self.throttle_pub.publish(throttle_cmd)
 
-        elif action == 'brake':
+        elif action == ACTION.BRAKE:
             self.brake_pub.publish(brake_cmd)
 
-        elif action == 'throttle':
+        elif action == ACTION.THROTTLE:
             self.throttle_pub.publish(throttle_cmd)
 
         self.steer_pub.publish(steering_cmd)

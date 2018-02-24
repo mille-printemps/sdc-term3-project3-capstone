@@ -15,13 +15,15 @@ import numpy as np
 import math
 import sys
 
-MAX_DISTANCE = 200.0 #100.0
+MAX_DISTANCE = 100
 MIN_DISTANCE = 0.0
 MAX_ANGLE = 15.0 * (math.pi/180.0)
 
+LOG_LEVEL = rospy.INFO
+
 class TLDetector(object):
     def __init__(self):
-        rospy.init_node('tl_detector')
+        rospy.init_node('tl_detector', log_level=LOG_LEVEL)
 
         self.base_waypoints = None        
         self.current_pos = None
@@ -80,8 +82,8 @@ class TLDetector(object):
 
         cv_image = CvBridge().imgmsg_to_cv2(msg, "bgr8")[...,::-1]
         image = PILImage.fromarray(np.uint8(cv_image))
-        image_np = np.expand_dims(image, axis=0)
-        result = self.classifier.get_classification(image_np)
+        expanded_image = np.expand_dims(image, axis=0)
+        result = self.classifier.get_classification(expanded_image)
 
         if (result == TrafficLight.RED) or (result == TrafficLight.YELLOW):
             self.save_stop_waypoint_index()

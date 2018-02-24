@@ -1,10 +1,13 @@
+import rospy
 from pid import PID
 from lowpass import LowPassFilter
 from yaw_controller import YawController
-import rospy
 
 GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
+MIN_SETPOINT_VELOCITY = 0.12
+
+LOG_LEVEL = rospy.INFO
 
 class Controller(object):
     def __init__(self, *args, **kwargs):
@@ -51,8 +54,8 @@ class Controller(object):
         throttle = 0
         brake = 0
 
-        # brake if setpoint velocity less than threshold
-        if linear_setpoint < 0.11:
+        # brake if setpoint velocity is less than threshold
+        if linear_setpoint < MIN_SETPOINT_VELOCITY:
             steer = 0
             brake = abs(self.decel_limit) * self.brake_torque
         else:
