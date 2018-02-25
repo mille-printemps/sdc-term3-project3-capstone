@@ -129,15 +129,17 @@ class WaypointUpdater(object):
         self.tl_waypoint_id = msg.data
 
     def reset_velocity(self, waypoints, velocity):
-        self.waypoint_saved_velocity = None
-        for i in range(LOOKAHEAD_WAYPOINTS):
-            waypoints[i].twist.twist.linear.x = velocity
+        if 0 < len(waypoints):
+            self.waypoint_saved_velocity = None
+            for i in range(LOOKAHEAD_WAYPOINTS):
+                waypoints[i].twist.twist.linear.x = velocity
         return waypoints
 
     def update_velocity(self, waypoints, multiplier = 1.0):
-        self.waypoint_saved_velocity = None
-        for i in range(LOOKAHEAD_WAYPOINTS):
-            waypoints[i].twist.twist.linear.x *= multiplier
+        if 0 < len(waypoints):
+            self.waypoint_saved_velocity = None
+            for i in range(LOOKAHEAD_WAYPOINTS):
+                waypoints[i].twist.twist.linear.x *= multiplier
         return waypoints
 
     def brake(self, waypoints):
